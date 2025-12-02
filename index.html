@@ -14,7 +14,7 @@
     <script type="text/babel">
         const { useState, useRef, useEffect } = React;
 
-        // Lucide React Icons (simplified inline versions)
+        // Lucide React Icons
         const Camera = () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>;
         const Upload = () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>;
         const Sparkles = () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 3v4m0 10v4m7-9h4M1 14h4m12.66-9.66 2.83 2.83M5.51 18.49l2.83 2.83m0-14.14L5.51 4.34m12.98 14.15-2.83 2.83"/></svg>;
@@ -50,6 +50,11 @@
                 background: linear-gradient(135deg, #8B5CF6, #10B981, #EF4444, #A78BFA, #34D399, #F87171);
                 background-size: 400% 400%;
                 animation: gradientShift 12s ease infinite;
+              }
+              .animated-gradient-vgr-alt {
+                background: linear-gradient(225deg, #A78BFA, #34D399, #F87171, #8B5CF6, #10B981);
+                background-size: 400% 400%;
+                animation: gradientShift 10s ease infinite;
               }
             `;
             document.head.appendChild(style);
@@ -91,7 +96,7 @@
                         },
                         {
                           type: 'text',
-                          text: `Analyze this image carefully and identify ALL waste materials. Provide 3-4 creative suggestions for upcycling. Respond ONLY with valid JSON: {"identified_items": ["item1"], "suggestions": [{"title": "Name", "description": "Desc", "difficulty": "Easy/Medium/Hard", "materials_needed": ["mat1"], "steps": ["step1"]}], "environmental_impact": "Impact text"}`
+                          text: `Analyze this image carefully and identify ALL waste materials, items, or objects that could be repurposed or upcycled. This includes but not limited to: plastic items, glass, metal, wood, fabric, paper, cardboard, electronics, tires, clothing, furniture parts, packaging materials, containers, tools, appliances, and any other discarded items. Provide 3-4 creative and practical suggestions for transforming these specific items into useful products. Be specific to what you see in the image. Respond ONLY with valid JSON in this exact structure (no markdown, no backticks, no preamble): {"identified_items": ["item1", "item2", "item3"], "suggestions": [{"title": "Product Name", "description": "Detailed description of the upcycled product", "difficulty": "Easy/Medium/Hard", "materials_needed": ["material1", "material2", "material3"], "steps": ["step1", "step2", "step3", "step4", "step5"]}], "environmental_impact": "Brief note on environmental benefits and waste reduction"}`
                         }
                       ]
                     }]
@@ -101,8 +106,8 @@
                 const data = await response.json();
                 if (data.content && data.content.length > 0) {
                   const textContent = data.content.find(item => item.type === 'text')?.text || '';
-                  let jsonStr = textContent.trim().replace(/```json\n?/g, '').replace(/```\n?/g, '');
-                  const jsonMatch = jsonStr.match(/\{[\s\S]*\}/);
+                  let jsonStr = textContent.trim().replace(/\`\`\`json\\n?/g, '').replace(/\`\`\`\\n?/g, '');
+                  const jsonMatch = jsonStr.match(/\{[\\s\\S]*\}/);
                   if (jsonMatch) {
                     setSuggestions(JSON.parse(jsonMatch[0]));
                   } else throw new Error('No valid JSON');
@@ -111,16 +116,26 @@
               };
               reader.readAsDataURL(selectedImage);
             } catch (error) {
+              console.error('Analysis error:', error);
               setSuggestions({
-                identified_items: ['Various recyclable materials detected'],
-                suggestions: [{
-                  title: 'Creative Upcycling Project',
-                  description: 'Transform your waste items into useful products with creativity!',
-                  difficulty: 'Medium',
-                  materials_needed: ['Items from image', 'Basic tools', 'Adhesives'],
-                  steps: ['Clean materials', 'Plan design', 'Assemble project', 'Customize to your style']
-                }],
-                environmental_impact: 'Every upcycled item reduces landfill waste and conserves resources.'
+                identified_items: ['Various recyclable materials detected in image'],
+                suggestions: [
+                  {
+                    title: 'Creative Upcycling Project',
+                    description: 'The items in your image can be transformed into useful products. Consider their material type, size, and condition when planning your project.',
+                    difficulty: 'Medium',
+                    materials_needed: ['Items from image', 'Basic tools', 'Adhesives', 'Paint or decorative materials'],
+                    steps: ['Clean and prepare all materials thoroughly', 'Assess the structural integrity and identify usable parts', 'Design your project based on the item characteristics', 'Gather additional materials if needed', 'Assemble and customize to match your needs']
+                  },
+                  {
+                    title: 'Functional Home Storage',
+                    description: 'Many waste items can become excellent storage solutions for organizing your home, garage, or workspace.',
+                    difficulty: 'Easy',
+                    materials_needed: ['Container items', 'Labels', 'Paint (optional)', 'Dividers if needed'],
+                    steps: ['Sort items by size and shape', 'Clean items inside and out', 'Add dividers or compartments if beneficial', 'Label for easy identification', 'Arrange in your desired location']
+                  }
+                ],
+                environmental_impact: 'Every item you upcycle prevents waste from reaching landfills, reduces the need for new products, and conserves natural resources. Your creative reuse contributes to a circular economy and sustainable living.'
               });
               setIsAnalyzing(false);
             }
@@ -137,19 +152,19 @@
 
           return (
             <div className="min-h-screen animated-gradient">
-              <header className="bg-white/95 backdrop-blur-sm shadow-sm border-b border-emerald-100">
+              <header className="animated-gradient-vgr shadow-lg border-b-4 border-white/30">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
-                      <div className="bg-gradient-to-br from-emerald-500 to-teal-600 p-2 rounded-xl">
-                        <Recycle />
+                      <div className="bg-white/95 backdrop-blur-lg p-3 rounded-xl shadow-lg">
+                        <Recycle className="w-8 h-8 text-purple-600" />
                       </div>
                       <div>
-                        <h1 className="text-2xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">EcoTransform</h1>
-                        <p className="text-sm text-gray-600">Waste to Wonderful</p>
+                        <h1 className="text-2xl font-bold text-white drop-shadow-lg">EcoTransform</h1>
+                        <p className="text-sm text-white/90 font-medium">Waste to Wonderful</p>
                       </div>
                     </div>
-                    <button onClick={() => setShowModal(true)} className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors text-sm font-medium">
+                    <button onClick={() => setShowModal(true)} className="px-6 py-2.5 bg-white text-purple-600 rounded-lg hover:bg-white/90 transition-all text-sm font-bold shadow-lg hover:shadow-xl">
                       How It Works
                     </button>
                   </div>
@@ -158,10 +173,10 @@
 
               <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
                 <div className="text-center mb-12">
-                  <h2 className="text-4xl font-bold text-gray-900 mb-4">
-                    Transform Waste into <span className="text-emerald-600">Useful Products</span>
+                  <h2 className="text-5xl font-bold text-white drop-shadow-2xl mb-4">
+                    Transform Waste into <span className="text-yellow-300">Useful Products</span>
                   </h2>
-                  <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+                  <p className="text-xl text-white/95 max-w-3xl mx-auto font-medium drop-shadow-lg">
                     Upload a photo of your waste items and get AI-powered suggestions for creative upcycling projects
                   </p>
                 </div>
@@ -232,14 +247,14 @@
                 </div>
 
                 {suggestions && (
-                  <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl p-8">
-                    <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
-                      <Lightbulb />
-                      <span className="ml-3">Your Upcycling Ideas</span>
+                  <div className="animated-gradient-vgr-alt rounded-2xl shadow-2xl p-8 border-4 border-white/30">
+                    <h3 className="text-3xl font-bold text-white drop-shadow-lg mb-6 flex items-center">
+                      <Lightbulb className="w-8 h-8 mr-3 text-yellow-300" />
+                      Your Upcycling Ideas
                     </h3>
 
-                    <div className="mb-6 p-4 bg-blue-50 rounded-xl">
-                      <h4 className="font-semibold text-blue-900 mb-2">Identified Items:</h4>
+                    <div className="mb-6 p-5 bg-white/95 backdrop-blur-sm rounded-xl shadow-lg">
+                      <h4 className="font-semibold text-blue-900 mb-3 text-lg">Identified Items:</h4>
                       <div className="flex flex-wrap gap-2">
                         {suggestions.identified_items?.map((item, idx) => (
                           <span key={idx} className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">{item}</span>
@@ -249,7 +264,7 @@
 
                     <div className="space-y-6">
                       {suggestions.suggestions?.map((suggestion, idx) => (
-                        <div key={idx} className="border-2 border-emerald-100 rounded-xl p-6 hover:border-emerald-300 transition-colors">
+                        <div key={idx} className="bg-white/95 backdrop-blur-sm border-4 border-white/50 rounded-xl p-6 hover:border-yellow-300 transition-all shadow-lg hover:shadow-2xl">
                           <div className="flex items-start justify-between mb-3">
                             <h4 className="text-xl font-bold text-gray-900">{suggestion.title}</h4>
                             <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getDifficultyColor(suggestion.difficulty)}`}>
@@ -275,7 +290,7 @@
                               <ol className="space-y-2">
                                 {suggestion.steps.map((step, i) => (
                                   <li key={i} className="flex items-start space-x-2">
-                                    <CheckCircle />
+                                    <CheckCircle className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
                                     <span className="text-gray-700">{step}</span>
                                   </li>
                                 ))}
@@ -287,7 +302,7 @@
                     </div>
 
                     {suggestions.environmental_impact && (
-                      <div className="mt-6 p-4 bg-green-50 rounded-xl border-2 border-green-200">
+                      <div className="mt-6 p-5 bg-white/95 backdrop-blur-sm rounded-xl border-4 border-green-300 shadow-lg">
                         <h4 className="font-semibold text-green-900 mb-2 flex items-center">
                           <span className="text-xl mr-2">🌱</span>
                           Environmental Impact
@@ -300,39 +315,45 @@
               </main>
 
               {showModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-                  <div className="bg-white rounded-2xl max-w-2xl w-full p-8 relative max-h-[90vh] overflow-y-auto">
-                    <button onClick={() => setShowModal(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
-                      <X />
+                <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+                  <div className="animated-gradient-vgr rounded-3xl max-w-2xl w-full p-8 relative max-h-[90vh] overflow-y-auto border-4 border-white/30 shadow-2xl">
+                    <button onClick={() => setShowModal(false)} className="absolute top-4 right-4 text-white hover:text-yellow-300 bg-white/20 backdrop-blur-sm p-2 rounded-full transition-all hover:bg-white/30">
+                      <X className="w-6 h-6" />
                     </button>
                     
-                    <h3 className="text-2xl font-bold text-gray-900 mb-6">How EcoTransform Works</h3>
+                    <h3 className="text-3xl font-bold text-white drop-shadow-lg mb-6">How EcoTransform Works</h3>
                     
                     <div className="space-y-6">
                       {[
-                        { step: 1, title: 'Capture', desc: 'Take a photo or upload an image of your waste items.' },
-                        { step: 2, title: 'Analyze', desc: 'AI analyzes the image to identify materials and upcycling potential.' },
-                        { step: 3, title: 'Discover', desc: 'Get creative suggestions for transforming waste into products.' },
-                        { step: 4, title: 'Create', desc: 'Follow instructions to complete your upcycling project!' }
+                        { step: 1, title: 'Capture', desc: 'Take a photo or upload an image of your waste items using your mobile camera or device storage.' },
+                        { step: 2, title: 'Analyze', desc: 'Our AI analyzes the image to identify materials and assess their upcycling potential.' },
+                        { step: 3, title: 'Discover', desc: 'Get creative, practical suggestions for transforming waste into useful products.' },
+                        { step: 4, title: 'Create', desc: 'Follow step-by-step instructions to complete your upcycling project!' }
                       ].map((item) => (
-                        <div key={item.step} className="flex items-start space-x-4">
-                          <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 text-white rounded-full flex items-center justify-center font-bold">
+                        <div key={item.step} className="flex items-start space-x-4 bg-white/95 backdrop-blur-sm rounded-xl p-4 shadow-lg">
+                          <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-600 text-white rounded-full flex items-center justify-center font-bold text-lg shadow-lg">
                             {item.step}
                           </div>
                           <div>
-                            <h4 className="font-semibold text-gray-900 mb-1">{item.title}</h4>
-                            <p className="text-gray-600">{item.desc}</p>
+                            <h4 className="font-bold text-gray-900 mb-1 text-lg">{item.title}</h4>
+                            <p className="text-gray-700">{item.desc}</p>
                           </div>
                         </div>
                       ))}
+                    </div>
+
+                    <div className="mt-8 p-4 bg-white/95 backdrop-blur-sm rounded-xl shadow-lg border-2 border-yellow-300">
+                      <p className="text-sm text-gray-800 font-medium">
+                        <strong className="text-purple-700">Tip:</strong> For best results, take clear photos in good lighting with the waste item visible and distinct from the background.
+                      </p>
                     </div>
                   </div>
                 </div>
               )}
 
-              <footer className="bg-white/95 backdrop-blur-sm border-t border-gray-200 mt-16">
+              <footer className="animated-gradient-vgr-alt border-t-4 border-white/30 mt-16 shadow-2xl">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                  <p className="text-center text-gray-600">
+                  <p className="text-center text-white font-semibold text-lg drop-shadow-lg">
                     Powered by AI. Making sustainability accessible to everyone. 🌍
                   </p>
                 </div>
